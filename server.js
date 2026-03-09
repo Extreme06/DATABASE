@@ -5,23 +5,21 @@ import { SQL } from './database.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 if (PORT === 3000)
-    console.warn('[WARNING] : PORT not found in .env file, using default value instead')
+	console.warn('[WARNING] : PORT not found in .env file, using default value instead')
 
 app.use(express.static(path.join(import.meta.dirname, 'src')))
 
 app.get('/user', async (req, res) => {
-    const id = parseInt(req.query.id)
-    const userData = id ? await SQL.read(id) : await SQL.read()
+	const id = parseInt(req.query.id)
+	const userData = id ? await SQL.read(id) : await SQL.read()
 
-    if (isNaN(userData)) {
-        res.json(userData)
-    } else res.send(userData)
+	res.json(userData)
 })
 
 app.get('/', (_req, res) => {
-    res.sendFile(path.join(import.meta.dirname, 'index.html'))
+	res.sendFile(path.join(import.meta.dirname, 'index.html'))
 })
 
 app.listen(PORT, () => {
-    console.log(`Server running on PORT ${PORT}`)
+	console.log(`Server running on PORT ${PORT}`)
 })
