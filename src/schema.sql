@@ -1,12 +1,11 @@
 CREATE TABLE users (
     id integer PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
+    userName VARCHAR(50),
     email VARCHAR(100)
 );
 
 INSERT INTO
-    users (first_name, last_name, email)
+    users (userName, email)
 VALUES
-    ('Luka', 'Tenkes', 'luka.tenkes@gmail.com'),
-    ('Boris', 'Tenkes', 'boris.tenkes@gmail.com');
+    ('Luka Tenkes', 'luka.tenkes@gmail.com'),
+    ('Boris Tenkes', 'boris.tenkes@gmail.com');

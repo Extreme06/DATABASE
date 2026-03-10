@@ -1,5 +1,5 @@
-const SubmitForm = document.getElementById('SubmitForm')
-const inputBar = document.getElementById('inputBar')
+const SubmitForm = document.getElementById('FORM_Search')
+const inputBar = document.getElementById('INPUT_search')
 
 SubmitForm.addEventListener('submit', async (e) => {
 	e.preventDefault()
@@ -7,9 +7,10 @@ SubmitForm.addEventListener('submit', async (e) => {
 	const requestedID = inputBar.value
 	const response = await getData(requestedID)
 
-	if (!response) {
-		console.warn('There is no user with such ID')
-	} else console.log(response)
+	if (!response) return
+
+	const userData = JSON.stringify(response.data, null, 2)
+	console.log(userData)
 })
 
 async function getData(idNumber = 0) {
@@ -23,6 +24,10 @@ async function getData(idNumber = 0) {
 		const response = await fetch(url)
 		const data = await response.json()
 
+		if (!response.ok) {
+			console.warn(data.message)
+			return
+		}
 		return data
 	} catch (err) {
 		console.error('Failed to get data from Database ', err)

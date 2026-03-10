@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import path from 'path'
 import express from 'express'
-import { SQL } from './database.js'
+import { SQL } from './database.script.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 if (PORT === 3000)
@@ -10,10 +10,16 @@ if (PORT === 3000)
 app.use(express.static(path.join(import.meta.dirname, 'src')))
 
 app.get('/user', async (req, res) => {
-	const id = parseInt(req.query.id)
-	const userData = id ? await SQL.read(id) : await SQL.read()
-
-	res.json(userData)
+	try {
+		const id = parseInt(req.query.id)
+		const userData = id ? await SQL.read(id) : await SQL.read()
+		res.json({ success: true, data: userData })
+	} catch (err) {
+		res.status(404).json({
+			success: false,
+			message: err.message,
+		})
+	}
 })
 
 app.get('/', (_req, res) => {
