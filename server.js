@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import path from 'path'
 import express from 'express'
-import { SQL } from './database.script.js'
+import { SQL } from './controllers/database.script.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 if (PORT === 3000)
