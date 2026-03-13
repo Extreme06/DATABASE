@@ -17,32 +17,36 @@ const pool = mysql
 
 export const SQL = {
 	read: async (searchParam = 0) => {
-		if (!(typeof searchParam === 'number' || typeof searchParam === 'string'))
-			throw new Error('[DATABASE ERROR] : Invalid type of search parameter')
+		if (!isValidParam(searchParam))
+			throw new Error(`[ DATABASE ERROR ] : Invalid Parameter : [${searchParam}]`)
 
 		const isByID = typeof searchParam === 'number'
+		const isByEmail = isValidEmail()
 
 		const query = isByID
 			? searchParam === 0
 				? 'SELECT * FROM users'
 				: 'SELECT * FROM users WHERE id=?'
-			: 'SELECT * FROM users WHERE email=?'
+			: isByEmail
+				? 'SELECT * FROM users WHERE email=?'
+				: 'SELECT * FROM users WHERE name=?'
 
 		const [rows] = await pool.query(query, searchParam)
-		if (rows.length === 0) throw new Error(`User with ID [${searchParam}] not found`)
+		if (rows.length === 0) return 0
 
-		return rows[0]
+		return rows
 	},
 
 	insert: async (name, email, password) => {
-		let invalid = []
-		if (!isValidPassword(password)) invalid.push('password')
-		if (!isValidName(name)) invalid.push('name')
-		if (!isValidEmail(email)) invalid.push('email')
+		let invalidParams = []
+		if (!isValidPassword(password)) invalidParams.push('password')
+		if (!isValidEmail(email)) invalidParams.push('email')
+		if (!isValidName(name)) invalidParams.push('name')
 
-		invalid.forEach((error) => {
-			throw new Error(`[DATABASE ERROR] : Invalid ${error} format`)
+		invalidParams.forEach((param) => {
+			console.warn(`[DATABASE ERROR] : Invalid ${param} format`)
 		})
+		if (invalidParams) return 0
 
 		try {
 			const [result] = await pool.query(
@@ -52,30 +56,29 @@ export const SQL = {
 			console.log(
 				`User [${name}] successfully inserted into Database with ID: [${result.insertId}]`,
 			)
-			return
+			return 1
 		} catch (error) {
 			console.error('[DATABASE ERROR]: Failed to insert user in database : ', error.message)
-			return
+			return 0
 		}
 	},
 
 	delete: async (deleteParamater) => {
-		if (typeof deleteParamater === 'string') {
-			await pool.query('DELETE FROM users WHERE name = ?', [deleteParamater])
-			console.log(`Successfuly deleted user with name : ${deleteParamater}`)
-		} else if (typeof deleteParamater === 'number') {
-			if (deleteParamater <= 0) throw new Error(`Impossible user ID : [${deleteParamater}]`)
+		if (!isValidParam(deleteParamater))
+			throw new Error(`[ DATABASE ERROR ] : Invalid Parameter : [${deleteParamater}]`)
 
-			await pool.query('DELETE FROM users WHERE id = ?', [deleteParamater])
-			console.log(`Successfuly deleted user with ID : ${deleteParamater}`)
-		} else throw new Error('[DATABASE ERROR]: Paramater must be either string or number!')
-	},
+		const query =
+			typeof deleteParamater === 'string'
+				? isValidEmail(deleteParamater)
+					? 'DELETE FROM users WHERE email=?'
+					: 'DELETE FROM users WHERE name=?'
+				: 'DELETE FROM users WHERE id=?'
 
-	readByEmail: async (email) => {
-		const [userData] = await pool.query('SELECT * FROM users WHERE email=?', email)
-		if (userData.length === 0) return 0
-
-		return userData
+		try {
+			await pool.query(query, deleteParamater)
+		} catch (error) {
+			throw new Error(`Failed to delete user with parameter [${deleteParamater}]`)
+		}
 	},
 }
 
@@ -102,4 +105,14 @@ function isValidPassword(password) {
 		password.length >= MIN_PASSWORD_LENGHT &&
 		password.length <= MAX_PASSWORD_LENGHT
 	return response
+}
+
+function isValidParam() {
+	if (
+		(typeof searchParam === 'number' && searchParam > 0) ||
+		(typeof searchParam === 'string' && searchParam.length >= MIN_USERNAME_LENGTH)
+	)
+		return 1
+
+	return 0
 }

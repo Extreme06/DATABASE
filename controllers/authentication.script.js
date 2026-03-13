@@ -7,10 +7,17 @@ export async function isUserValid(requestedEmail, requestedPassword) {
 			'[ AUTH ERROR ] : isUserValid() function accepts only STRING parameters',
 		)
 
-	const user = await SQL.readByEmail(requestedEmail)
-	if (!user) throw new Error('There is no user with such email')
+	const viableUsers = await SQL.read(requestedEmail)
+	if (!viableUsers) throw new Error('There is no user with such email')
 
-	const passwordMatch = await bcrypt.compare(requestedPassword, user.password)
-
+	const passwordMatch = await queryUsers(viableUsers, requestedPassword)
 	return passwordMatch
+}
+
+async function queryUsers(viableUsers, requestedPassword) {
+	await viableUsers.forEach(async (user) => {
+		const passwordMatch = await bcrypt.compare(requestedPassword, user.password)
+		if (passwordMatch) return 1
+	})
+	return 0
 }
