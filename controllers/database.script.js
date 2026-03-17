@@ -1,11 +1,5 @@
 import mysql from 'mysql2'
 
-const MIN_EMAIL_LENGHT = 11
-const MIN_USERNAME_LENGTH = 3
-const MAX_USERNAME_LENGTH = 12
-const MIN_PASSWORD_LENGHT = 4
-const MAX_PASSWORD_LENGHT = 20
-
 const pool = mysql
 	.createPool({
 		host: process.env.SQL_HOST,
@@ -47,7 +41,7 @@ export const SQL = {
 		invalidParams.forEach((param) => {
 			console.warn(`[DATABASE ERROR] : Invalid ${param} format`)
 		})
-		if (invalidParams) return 'error'
+		if (invalidParams) return JSON.stringify({ success: false })
 
 		try {
 			const [result] = await pool.query(
@@ -57,13 +51,13 @@ export const SQL = {
 			console.log(
 				`User [${name}] successfully inserted into Database with ID: [${result.insertId}]`,
 			)
-			return 1
+			return JSON.stringify({ success: true })
 		} catch (error) {
 			console.error(
 				'[DATABASE ERROR]: Failed to insert user in database : ',
 				error.message,
 			)
-			return 0
+			return JSON.stringify({ success: false })
 		}
 	},
 
@@ -87,36 +81,29 @@ export const SQL = {
 }
 
 function isValidEmail(email) {
-	const response =
-		typeof email === 'string' &&
-		email.includes('@gmail.com') &&
-		email.length > MIN_EMAIL_LENGHT
+	const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+	const response = typeof email === 'string' && regex.test(email)
 	return response
 }
 
 function isValidName(name) {
-	const response =
-		typeof name === 'string' &&
-		name.length >= MIN_USERNAME_LENGTH &&
-		name.length <= MAX_USERNAME_LENGTH
-
+	// accepted: lower/upper case letters a-z, lenght 2-50
+	const regex = /^[a-zA-Z\s]{2,50}$/
+	const response = typeof name === 'string' && regex.test(name)
 	return response
 }
 
 function isValidPassword(password) {
-	response =
-		typeof password === 'string' &&
-		password.length >= MIN_PASSWORD_LENGHT &&
-		password.length <= MAX_PASSWORD_LENGHT
+	//accepted: lower/upper case letters, number sand symbols, lenght 4-20
+	const regex = /^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~]{4,20}$/
+	const response = typeof password === 'string' && regex.test(password)
 	return response
 }
 
 function isValidParam(param) {
-	if (
+	const response =
 		(typeof param === 'number' && param > 0) ||
-		(typeof param === 'string' && param.length >= MIN_USERNAME_LENGTH)
-	)
-		return true
+		(typeof param === 'string' && param.length > 2)
 
-	return false
+	return response
 }

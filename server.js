@@ -5,29 +5,29 @@ import { SQL } from './controllers/database.script.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 if (PORT === 3000)
-	console.warn('[WARNING] : PORT not found in .env file, using default value instead')
+	console.log('[WARNING] : PORT not found in .env file, using default value instead')
 
+//middlewares
 app.use(express.static(path.join(import.meta.dirname, 'src')))
+app.use(express.json())
 
-app.get('/createUser', async (req, res) => {
-	const user = {
-		name: req.query.name,
-		email: req.query.email,
-		password: req.query.password,
-	}
-
-	res.send(user)
+app.post('/user', async (req, res) => {
+	console.log('This is req.body:')
+	console.log(req.body)
+	const user = req.body
+	const { name, email, password } = req.body
+	await SQL.insert(name, email, password)
 })
 
 app.get('/user', async (req, res) => {
 	try {
-		const id = parseInt(req.query.id)
+		const requestedID = parseInt(req.query.id)
 
-		id
-			? console.log(`Client requested user with id: [${id}]`)
+		requestedID
+			? console.log(`Client requested user with id: [${requestedID}]`)
 			: console.log('Client requested all users from DB')
 
-		const userData = id ? await SQL.read(id) : await SQL.read()
+		const userData = requestedID ? await SQL.read(requestedID) : await SQL.read()
 		res.json({ success: true, data: userData })
 	} catch (err) {
 		res.status(404).json({

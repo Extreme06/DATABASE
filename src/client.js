@@ -10,22 +10,33 @@ FORM_insertUser.addEventListener('submit', async (e) => {
 	e.preventDefault()
 
 	//pull {name email password} variables that client submitted
-	const name = INPUT_insertUser_Name.value
-	const email = INPUT_insertUser_Email.value
-	const password = INPUT_insertUser_Password.value
-
-	if (!(name && email && password)) {
-		console.warn('Invalid parameters')
-		return
+	const dataToSend = {
+		name: INPUT_insertUser_Name.value,
+		email: INPUT_insertUser_Email.value,
+		password: INPUT_insertUser_Password.value,
 	}
 
-	const url = `/createUser?name=${name}&email=${email}&password=${password}`
-	// if(url > MAX_URL_LENGHT) throw new Error('Url lenght is way too big')
+	// dataToSend.forEach((element) => {
+	// 	if (!element) {
+	// 		console.warn(`Invalid parameter [${element}]`)
+	// 		return
+	// 	}
+	// })
 
-	const response = await fetch(url)
+	const response = await fetch('/user', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(dataToSend),
+	})
+
+	if (!response.ok) {
+		console.warn('There was an Error with importing user')
+		return
+	}
 	const data = await response.json()
 	console.log(data)
-	console.log('WORKSS')
 })
 
 SubmitForm.addEventListener('submit', async (e) => {
@@ -42,13 +53,20 @@ SubmitForm.addEventListener('submit', async (e) => {
 
 async function getData(idNumber = 0) {
 	if (isNaN(idNumber)) {
-		console.error('Only numbers are accepted!')
+		console.warn('Only numbers are accepted!')
 		return
 	}
 
-	const url = idNumber ? `/user?id=${idNumber}` : '/user'
+	// const url = idNumber ? `/user?id=${idNumber}` : '/user'
 	try {
-		const response = await fetch(url)
+		const response = await fetch('/user', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ requestedID: idNumber }),
+		})
+
 		const data = await response.json()
 
 		if (!response.ok) {
